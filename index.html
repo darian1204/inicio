@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#1a1918" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inicio">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Inicio</title>
+<style>
+  :root {
+    --bg: #1a1918;
+    --text: #ece9e4;
+    --muted: #9a948b;
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-hover: rgba(255, 255, 255, 0.10);
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #d97757;
+    --accent-soft: rgba(217, 119, 87, 0.18);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --pop: rgba(38, 36, 34, 0.86);
+    --blob1: #d97757;
+    --blob2: #8a5a3c;
+    --blob3: #4a4a52;
+    --blob-opacity: 0.38;
+    --radius: 20px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f1ea;
+      --text: #2a2723;
+      --muted: #7a746b;
+      --glass: rgba(255, 255, 255, 0.55);
+      --glass-hover: rgba(255, 255, 255, 0.80);
+      --border: rgba(0, 0, 0, 0.08);
+      --accent: #c4623f;
+      --accent-soft: rgba(196, 98, 63, 0.14);
+      --shadow: 0 8px 32px rgba(80, 60, 40, 0.12);
+      --pop: rgba(255, 252, 247, 0.9);
+      --blob1: #e8a07f;
+      --blob2: #f0c9a8;
+      --blob3: #c9c4ba;
+      --blob-opacity: 0.55;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Fondo: manchas difuminadas que se mueven lento */
+  .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: var(--blob-opacity);
+    will-change: transform;
+  }
+  .blob.b1 { width: 55vmax; height: 55vmax; background: var(--blob1); top: -20vmax; left: -10vmax; animation: drift1 38s ease-in-out infinite alternate; }
+  .blob.b2 { width: 48vmax; height: 48vmax; background: var(--blob2); bottom: -22vmax; right: -12vmax; animation: drift2 46s ease-in-out infinite alternate; }
+  .blob.b3 { width: 38vmax; height: 38vmax; background: var(--blob3); top: 30%; left: 45%; animation: drift3 52s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform: translate(18vmax, 14vmax) scale(1.15); } }
+  @keyframes drift2 { to { transform: translate(-16vmax, -12vmax) scale(1.1); } }
+  @keyframes drift3 { to { transform: translate(-20vmax, 10vmax) scale(0.9); } }
+  @media (prefers-reduced-motion: reduce) { .blob { animation: none; } }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: calc(9vh + env(safe-area-inset-top)) 24px calc(48px + env(safe-area-inset-bottom));
+  }
+
+  /* Reloj y saludo */
+  .hero { text-align: center; margin-bottom: 28px; }
+  .clock {
+    font-size: clamp(64px, 11vw, 112px);
+    font-weight: 200;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .date { color: var(--muted); margin-top: 8px; font-size: 16px; text-transform: capitalize; }
+  .greeting { margin-top: 14px; font-size: 22px; font-weight: 500; }
+  .greeting span { color: var(--accent); }
+
+  /* Buscador */
+  .search { max-width: 640px; margin: 0 auto 10px; position: relative; }
+  .search input {
+    width: 100%;
+    padding: 16px 22px 16px 52px;
+    font: inherit;
+    font-size: 17px;
+    color: var(--text);
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    outline: none;
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    transition: border-color .2s, background .2s;
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search input:focus { border-color: var(--accent); background: var(--glass-hover); }
+  .search svg { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; }
+  .suggest {
+    position: absolute;
+    left: 0; right: 0; top: calc(100% + 8px);
+    z-index: 10;
+    list-style: none;
+    padding: 8px;
+    background: var(--pop);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    backdrop-filter: blur(30px) saturate(160%);
+  }
+  .suggest[hidden] { display: none; }
+  .suggest li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .suggest li svg { width: 15px; height: 15px; flex: none; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; position: static; transform: none; }
+  .suggest li.on { background: var(--accent-soft); }
+  .suggest li b { font-weight: 600; }
+  .hints { text-align: center; color: var(--muted); font-size: 12.5px; margin-bottom: 36px; }
+  .hints code { font: inherit; font-weight: 600; color: var(--accent); }
+
+  /* Tarjetas de vidrio */
+  .grid { display: grid; gap: 16px; }
+  .links { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 16px; }
+  .bottom { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+  }
+  .card h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    margin: 0 -10px;
+    border-radius: 12px;
+    color: var(--text);
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .link:hover { background: var(--accent-soft); }
+  .link:active { transform: scale(0.98); }
+  .ico {
+    width: 28px; height: 28px; flex: none;
+    border-radius: 8px;
+    background: var(--glass-hover);
+    display: grid; place-items: center;
+    overflow: hidden;
+    font-size: 13px; font-weight: 700; color: var(--accent);
+  }
+  .ico img { width: 18px; height: 18px; display: block; }
+
+  /* Cuentas regresivas */
+  .count { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 0; }
+  .count + .count { border-top: 1px solid var(--border); }
+  .count .name { color: var(--muted); }
+  .count .num { font-size: 40px; font-weight: 300; letter-spacing: -0.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .count .num small { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+
+  /* Pendientes */
+  .todo-form { display: flex; gap: 8px; margin-bottom: 10px; }
+  .todo-form input {
+    flex: 1; min-width: 0;
+    padding: 9px 14px;
+    font: inherit;
+    color: var(--text);
+    background: var(--glass-hover);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+  }
+  .todo-form input:focus { border-color: var(--accent); }
+  .todo-form button {
+    padding: 0 16px;
+    font: inherit; font-weight: 600;
+    color: #fff; background: var(--accent);
+    border: 0; border-radius: 12px; cursor: pointer;
+  }
+  .todo-form button:active { transform: scale(0.96); }
+  #todos { list-style: none; max-height: 190px; overflow-y: auto; }
+  #todos li { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  #todos input[type=checkbox] { accent-color: var(--accent); width: 17px; height: 17px; flex: none; cursor: pointer; }
+  #todos .t { flex: 1; word-break: break-word; }
+  #todos li.done .t { color: var(--muted); text-decoration: line-through; }
+  #todos .del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; opacity: 0; transition: opacity .15s; }
+  #todos li:hover .del { opacity: 1; }
+  #todos .del:hover { color: var(--accent); }
+  .empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Pantallas táctiles: sin hover, el borrar siempre visible */
+  @media (hover: none) {
+    #todos .del { opacity: 1; padding: 6px 8px; }
+    .hints .kbd { display: none; }
+  }
+
+  /* Celular: accesos como íconos de app, 4 por fila */
+  @media (max-width: 600px) {
+    .wrap { padding: calc(6vh + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom)); }
+    .hero { margin-bottom: 22px; }
+    .greeting { font-size: 19px; }
+    .search input { font-size: 16px; padding: 14px 18px 14px 48px; } /* 16px evita el zoom de iOS al enfocar */
+    .hints { display: none; }
+    .search { margin-bottom: 24px; }
+    .blob { filter: blur(60px); }
+    .links, .bottom { grid-template-columns: 1fr; gap: 12px; }
+    .links { margin-bottom: 12px; }
+    .card { padding: 14px; border-radius: 22px; }
+    .links .card { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 2px; }
+    .links .card h2 { grid-column: 1 / -1; margin-bottom: 6px; }
+    .link {
+      flex-direction: column; justify-content: flex-start; gap: 6px;
+      padding: 8px 2px; margin: 0;
+      font-size: 11.5px; text-align: center; min-width: 0;
+    }
+    .link span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ico { width: 52px; height: 52px; border-radius: 14px; font-size: 20px; }
+    .ico img { width: 30px; height: 30px; }
+    .count .num { font-size: 34px; }
+    .todo-form input { font-size: 16px; padding: 11px 14px; }
+    .todo-form button { padding: 0 18px; }
+    #todos li { padding: 9px 0; }
+    #todos input[type=checkbox] { width: 22px; height: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<main class="wrap">
+  <header class="hero">
+    <div class="clock" id="clock">--:--</div>
+    <div class="date" id="date"></div>
+    <div class="greeting" id="greeting"></div>
+  </header>
+
+  <form class="search" id="search" autocomplete="off">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="text" placeholder="Buscar en Google o escribir una dirección" aria-label="Buscar" enterkeyhint="search" autocapitalize="off" autocorrect="off" role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list">
+    <ul class="suggest" id="suggest" role="listbox" hidden></ul>
+  </form>
+  <p class="hints"><code>gh</code> GitHub · <code>yt</code> YouTube · <code>ml</code> Mercado Libre · <code>am</code> Amazon · <code>w</code> Wikipedia<span class="kbd"> · <code>/</code> para enfocar</span></p>
+
+  <section class="grid links" id="links"></section>
+
+  <section class="grid bottom">
+    <div class="card">
+      <h2>Cuenta regresiva</h2>
+      <div id="countdowns"></div>
+    </div>
+    <div class="card">
+      <h2>Pendientes</h2>
+      <form class="todo-form" id="todoForm">
+        <input id="todoInput" type="text" placeholder="Agregar pendiente…" aria-label="Nuevo pendiente">
+        <button type="submit">Agregar</button>
+      </form>
+      <ul id="todos"></ul>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ---------- Configuración: edita aquí ---------- */
+const NAME = "Darian";
+
+const CATEGORIES = [
+  { title: "Escuela", links: [
+    ["Moodle ITCH II", "https://moodle.chihuahua2.tecnm.mx/?redirect=0"],
+    ["Microsoft Teams", "https://teams.cloud.microsoft/"],
+    ["AMBAR", "https://chihuahua2.ambar.tecnm.mx/estudiantes/"],
+    ["Google Tasks", "https://calendar.google.com/calendar/u/0/r/tasks"],
+    ["Gemini Notebook", "https://notebook.google.com/"],
+  ]},
+  { title: "Programación", links: [
+    ["GitHub", "https://github.com/"],
+    ["Vercel", "https://vercel.com/dashboard"],
+    ["Supabase", "https://supabase.com/dashboard"],
+    ["Claude", "https://claude.ai/"],
+  ]},
+  { title: "Entretenimiento", links: [
+    ["YouTube", "https://www.youtube.com/"],
+    ["Twitch", "https://www.twitch.tv/"],
+    ["Crunchyroll", "https://www.crunchyroll.com/es/discover"],
+  ]},
+  { title: "Compras y social", links: [
+    ["Amazon", "https://www.amazon.com.mx/"],
+    ["Mercado Libre", "https://www.mercadolibre.com.mx/"],
+    ["X", "https://x.com/home"],
+    ["Facebook", "https://www.facebook.com/"],
+  ]},
+];
+
+// Agrega entregas o exámenes aquí: { name, date: "AAAA-MM-DD" }
+const COUNTDOWNS = [
+  { name: "Fin del semestre", date: "2026-12-02" },
+];
+
+const ENGINES = {
+  g:  q => "https://www.google.com/search?q=" + encodeURIComponent(q),
+  gh: q => "https://github.com/search?q=" + encodeURIComponent(q),
+  yt: q => "https://www.youtube.com/results?search_query=" + encodeURIComponent(q),
+  ml: q => "https://listado.mercadolibre.com.mx/" + encodeURIComponent(q.trim().replace(/\s+/g, "-")),
+  am: q => "https://www.amazon.com.mx/s?k=" + encodeURIComponent(q),
+  w:  q => "https://es.wikipedia.org/w/index.php?search=" + encodeURIComponent(q),
+};
+/* ----------------------------------------------- */
+
+const $ = id => document.getElementById(id);
+
+// Reloj, fecha y saludo
+function tick() {
+  const now = new Date();
+  $("clock").textContent = now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false });
+  $("date").textContent = now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+  const h = now.getHours();
+  const hi = h < 6 ? "Buenas noches" : h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+  $("greeting").innerHTML = hi + ", <span></span>";
+  $("greeting").querySelector("span").textContent = NAME;
+}
+tick();
+setInterval(tick, 1000 * 15);
+
+// Tarjetas de enlaces
+function icon(name, url) {
+  const el = document.createElement("span");
+  el.className = "ico";
+  const img = new Image();
+  img.alt = "";
+  img.src = "https://www.google.com/s2/favicons?sz=64&domain_url=" + encodeURIComponent(url);
+  img.onerror = () => { el.textContent = name[0].toUpperCase(); };
+  el.appendChild(img);
+  return el;
+}
+const linksEl = $("links");
+for (const cat of CATEGORIES) {
+  const card = document.createElement("div");
+  card.className = "card";
+  const h = document.createElement("h2");
+  h.textContent = cat.title;
+  card.appendChild(h);
+  for (const [name, url] of cat.links) {
+    const a = document.createElement("a");
+    a.className = "link";
+    a.href = url;
+    a.appendChild(icon(name, url));
+    const s = document.createElement("span");
+    s.textContent = name;
+    a.appendChild(s);
+    card.appendChild(a);
+  }
+  linksEl.appendChild(card);
+}
+
+// Buscador con prefijos
+function parseQuery(raw) {
+  const m = raw.match(/^(\w+)\s+(.*)$/);
+  const k = m && m[1].toLowerCase();
+  return k && k !== "g" && ENGINES[k] ? { prefix: k, term: m[2] } : { prefix: "", term: raw };
+}
+const looksLikeUrl = s => /^https?:\/\//i.test(s) || /^[^\s]+\.[a-z]{2,}(\/\S*)?$/i.test(s);
+
+function go(raw) {
+  raw = raw.trim();
+  if (!raw) return;
+  const { prefix, term } = parseQuery(raw);
+  if (prefix && term.trim()) location.href = ENGINES[prefix](term);
+  else if (/^https?:\/\//i.test(raw)) location.href = raw;
+  else if (looksLikeUrl(raw)) location.href = "https://" + raw;
+  else location.href = ENGINES.g(raw);
+}
+
+// Autocompletado (JSONP: el endpoint de Google no permite fetch desde file://)
+const input = $("q"), list = $("suggest");
+// Enfocar solo con mouse/teclado: en el celular abriría el teclado al entrar
+if (matchMedia("(hover: hover)").matches) input.focus();
+let items = [], sel = -1, reqId = 0, timer;
+
+function hideSuggest() {
+  list.hidden = true;
+  input.setAttribute("aria-expanded", "false");
+  sel = -1;
+}
+function highlight(i) {
+  sel = i;
+  [...list.children].forEach((li, n) => li.classList.toggle("on", n === i));
+}
+function renderSuggest(typed) {
+  list.textContent = "";
+  if (!items.length) return hideSuggest();
+  const low = typed.toLowerCase();
+  items.forEach((s, i) => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+    const span = document.createElement("span");
+    if (s.toLowerCase().startsWith(low)) {
+      span.append(s.slice(0, typed.length));
+      const b = document.createElement("b");
+      b.textContent = s.slice(typed.length);
+      span.append(b);
+    } else {
+      span.textContent = s;
+    }
+    li.appendChild(span);
+    li.addEventListener("mouseenter", () => highlight(i));
+    li.addEventListener("click", () => choose(i));
+    list.appendChild(li);
+  });
+  list.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+  sel = -1;
+}
+function fetchSuggestions(term, yt, done) {
+  const id = ++reqId, cb = "__sg" + id;
+  const s = document.createElement("script");
+  const cleanup = () => { delete window[cb]; s.remove(); };
+  window[cb] = data => {
+    cleanup();
+    if (id !== reqId) return; // llegó tarde, ya hay una búsqueda más nueva
+    done((data[1] || []).map(x => (Array.isArray(x) ? x[0] : x)).slice(0, 7));
+  };
+  s.onerror = cleanup;
+  setTimeout(cleanup, 5000);
+  s.src = "https://suggestqueries.google.com/complete/search?client=youtube&hl=es"
+        + (yt ? "&ds=yt" : "") + "&q=" + encodeURIComponent(term) + "&jsonp=" + cb;
+  document.head.appendChild(s);
+}
+function choose(i) {
+  const { prefix } = parseQuery(input.value.trim());
+  input.value = (prefix ? prefix + " " : "") + items[i];
+  hideSuggest();
+  go(input.value);
+}
+
+input.addEventListener("input", () => {
+  clearTimeout(timer);
+  const { prefix, term } = parseQuery(input.value.trimStart());
+  const t = term.trim();
+  if (!t || looksLikeUrl(t)) { reqId++; items = []; return hideSuggest(); }
+  timer = setTimeout(() => {
+    fetchSuggestions(t, prefix === "yt", res => { items = res; renderSuggest(t); });
+  }, 90);
+});
+input.addEventListener("keydown", e => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (!items.length) return;
+    e.preventDefault();
+    if (list.hidden) list.hidden = false;
+    const n = items.length;
+    highlight(e.key === "ArrowDown" ? (sel + 1) % n : (sel - 1 + n) % n);
+  } else if (e.key === "Escape") {
+    hideSuggest();
+  } else if (e.key === "Enter" && sel >= 0 && !list.hidden) {
+    e.preventDefault();
+    choose(sel);
+  }
+});
+input.addEventListener("blur", () => setTimeout(hideSuggest, 120));
+list.addEventListener("mousedown", e => e.preventDefault()); // no pierdas el foco al hacer clic
+
+$("search").addEventListener("submit", e => {
+  e.preventDefault();
+  go(input.value);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
+    e.preventDefault();
+    $("q").focus();
+  }
+});
+
+// Cuentas regresivas
+function renderCountdowns() {
+  const box = $("countdowns");
+  box.textContent = "";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  for (const c of COUNTDOWNS) {
+    const [y, m, d] = c.date.split("-").map(Number);
+    const days = Math.round((new Date(y, m - 1, d) - today) / 86400000);
+    const row = document.createElement("div");
+    row.className = "count";
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = c.name;
+    const num = document.createElement("span");
+    num.className = "num";
+    if (days < 0) { num.textContent = "Pasó"; }
+    else if (days === 0) { num.textContent = "Hoy"; }
+    else {
+      num.textContent = days;
+      const u = document.createElement("small");
+      u.textContent = days === 1 ? "día" : "días";
+      num.appendChild(u);
+    }
+    row.append(name, num);
+    box.appendChild(row);
+  }
+}
+renderCountdowns();
+
+// Pendientes (se guardan en el navegador)
+const KEY = "inicio.todos";
+let todos = [];
+try { todos = JSON.parse(localStorage.getItem(KEY)) || []; } catch (_) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(todos)); } catch (_) {} };
+
+function renderTodos() {
+  const ul = $("todos");
+  ul.textContent = "";
+  if (!todos.length) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = "Nada pendiente.";
+    ul.appendChild(li);
+    return;
+  }
+  todos.forEach((t, i) => {
+    const li = document.createElement("li");
+    if (t.done) li.className = "done";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !!t.done;
+    cb.addEventListener("change", () => { t.done = cb.checked; save(); renderTodos(); });
+    const txt = document.createElement("span");
+    txt.className = "t";
+    txt.textContent = t.text;
+    const del = document.createElement("button");
+    del.className = "del";
+    del.type = "button";
+    del.textContent = "×";
+    del.setAttribute("aria-label", "Borrar");
+    del.addEventListener("click", () => { todos.splice(i, 1); save(); renderTodos(); });
+    li.append(cb, txt, del);
+    ul.appendChild(li);
+  });
+}
+$("todoForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = $("todoInput").value.trim();
+  if (!v) return;
+  todos.unshift({ text: v, done: false });
+  $("todoInput").value = "";
+  save();
+  renderTodos();
+});
+renderTodos();
+</script>
+</body>
+</html>
